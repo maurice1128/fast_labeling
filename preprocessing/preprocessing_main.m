@@ -1,0 +1,185 @@
+%%%
+% 1. set the saving path
+% 2.
+%% preprocess   
+close all
+clc
+clear all
+
+error = [];
+replace = true;
+
+
+%要填的地方
+total_mouse = 3
+mouse_name = {'WT_1','Sham_2','CL-DBS_3','CL_DBS_4'}
+%recording前一個資料夾
+savePath = '/Users/mauricewang/Desktop/recording' 
+
+
+%設定channel數
+chosse_channel = {[1,2,7,8,9,10,15,16];[17 18 23 24 25 26 31 32];[33,34,39,40,41,42,47,48];[49,50,55,56,57,58,63,64]};
+
+
+%create mat file
+
+
+for i = 1:total_mouse
+make_dir = [savePath  '/' char(mouse_name(i)) '/mat_file_zscore'    ]
+mkdir(make_dir)
+
+make_dir = [savePath  '/' char(mouse_name(i)) '/mat_file_no_muscle_substract_zscore'    ]
+mkdir(make_dir)
+
+
+make_dir = [savePath  '/' char(mouse_name(i)) '/mat_file_no_zscore'    ]
+mkdir(make_dir)
+
+make_dir = [savePath  '/' char(mouse_name(i)) '/mat_file_no_muscle_substract_no_zscore'    ]
+mkdir(make_dir)
+
+
+
+end
+
+
+
+[filePath,~] = EEG_tools_new.getFilePath(true,'/',savePath);
+i=1;
+
+i = 0
+
+for Path = filePath
+    
+    window = waitbar(0,'data processing... 0%') %set progess bar windwow
+    for k = 1:total_mouse %mouse_name 
+        Path = char(Path);
+        data = EEG_tools_new.getRawData(Path, cell2mat(chosse_channel(k)), replace);
+        data_raw = data;
+%         data = EEG_tools_new.Preprocessing(data,data.Data,[0.5,30],[10 300],data.Header.sample_rate,1000); 
+        data = EEG_tools_new.detrend(data, data.Data);
+        data = EEG_tools_new.reduce_mean(data, data.Data);
+       data = EEG_tools_new.notch60(data, data.Data);
+         data = EEG_tools_new.bandpass(data, data.Data,[0.5,30],[10 300], data.Header.sample_rate);
+        data = EEG_tools_new.down_sample(data, data.Data, 1000);
+        saveFileName = ['Re0' num2str(i+1) '_'  char(mouse_name(k)) ];
+         EEG = data
+        EEG_tools_new.saveICAData(EEG,[savePath '/' char(mouse_name(k)) '/' 'mat_file_no_muscle_substract_zscore'],saveFileName);
+        EEG_tools_new.saveICAData(EEG,[savePath '/' char(mouse_name(k)) '/' 'mat_file_no_muscle_substract_no_zscore'],saveFileName);
+        data.Data(5,:)=data.Data(5,:)-data.Data(6,:)
+        data.Data(6,:)=data.Data(7,:)-data.Data(8,:)
+        data.Data(7,:)=[]
+        data.Data(7,:) = []
+
+        
+
+         EEG = data
+
+        
+
+       
+        saveFileName = ['Re0' num2str(i+1) '_'  char(mouse_name(k)) ];
+        
+        EEG_tools_new.saveICAData(EEG,[savePath '/' char(mouse_name(k)) '/' 'mat_file_zscore'],saveFileName);
+        EEG_tools_new.saveICAData(EEG,[savePath '/' char(mouse_name(k)) '/' 'mat_file_no_zscore'],saveFileName);
+        
+        
+
+    end
+    str = ['data processing...',num2str((i/length(filePath))*100),'%'];
+    waitbar(i/length(filePath),window,str)
+    
+    i = i+1;
+end
+delete(window);
+
+recording_count = i
+
+
+%%zscore處理正常
+% z-score
+for k = 1:total_mouse
+zscore_temp = []
+zscore_count = [0]
+temp = dir([savePath '/' char(mouse_name(k)) '/mat_file_zscore'])
+temp = natsortfiles(temp);
+
+%將時間串起來
+    for i = 1:recording_count
+        
+            
+                load([char(temp(i).folder) '/' 'Re0' num2str(i) '_'  char(mouse_name(k))]);
+                zscore_temp = [zscore_temp,EEG.Data];
+                zscore_count = [zscore_count,zscore_count(i)+max(size(EEG.Data))];
+    
+    end
+
+
+
+
+%將數據zscore
+    for i = 1:recording_count
+
+        for m = 1:size(EEG.Data,1)
+        
+            zscore_temp(m,:) = zscore(zscore_temp(m,:));
+
+         
+        end
+        EEG.Data = zscore_temp (:,zscore_count(i)+1:zscore_count(i+1));
+        saveFileName = ['Re0' num2str(i) '_'  char(mouse_name(k))  ];
+        
+        EEG_tools_new.saveICAData(EEG, [savePath '/' char(mouse_name(k)) '/' 'mat_file_zscore'],saveFileName);
+    end
+
+
+
+end
+
+%%zscore 處理muscle substract-zscore
+% z-score
+for k = 1:total_mouse
+zscore_temp = []
+zscore_count = [0]
+temp = dir([savePath '/' char(mouse_name(k)) '/mat_file_no_muscle_substract_zscore'])
+temp = natsortfiles(temp);
+
+%將時間串起來
+    for i = 1:recording_count
+        
+            
+                load([char(temp(i).folder) '/' 'Re0' num2str(i) '_'  char(mouse_name(k))]);
+                zscore_temp = [zscore_temp,EEG.Data];
+                zscore_count = [zscore_count,zscore_count(i)+max(size(EEG.Data))];
+    
+    end
+
+
+
+
+%將數據zscore
+    for i = 1:recording_count
+
+        for m = 1:size(EEG.Data,1)
+        
+            zscore_temp(m,:) = zscore(zscore_temp(m,:));
+
+         
+        end
+        EEG.Data = zscore_temp (:,zscore_count(i)+1:zscore_count(i+1));
+        saveFileName = ['Re0' num2str(i) '_'  char(mouse_name(k))  ];
+        
+        EEG_tools_new.saveICAData(EEG, [savePath '/' char(mouse_name(k)) '/' 'mat_file_no_muscle_substract_zscore'],saveFileName);
+    end
+
+
+
+end
+
+
+
+
+
+
+
+    
