@@ -60,4 +60,3 @@ plot(EMG_power)
 
 
 
-
