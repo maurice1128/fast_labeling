@@ -81,17 +81,22 @@ for i=1:length(file_names)
         detected_data=filtfilt(bandpass_default, detected_data);
         [wt period]=cwt(detected_data,1000);
     end
+
+
     save_fig = figure
     subplot(2,1,1)
     time=1:length(detected_data);
     time=time/1000;
     plot(time,detected_data)
-    axis([0 inf -1000 800])
+    axis([0 inf -800 800])
+    set(gca,'XTick', []);
+    set(gca,'YTick', []);
     subplot(2,1,2)
-    imagesc(abs(wt(45:121,:)))
-    yticks([1 5 11 21 44 77])
-    yticklabels({'20','15','10','5','1','0.1'})
+    imagesc(abs(wt(45:88,:)))
+    yticks([1 5 11 21 44])
+    yticklabels({'20','15','10','5','1'})
     colormap jet
+
 %     saveas(save_fig,[make_dir_path_2 '/' mat_name], 'fig')
     saveas(save_fig,[make_dir_path_2_png '/' mat_name], 'png')
     close all
@@ -99,6 +104,8 @@ for i=1:length(file_names)
 
 end
 end
+
+
 gmail.send_mail_from_maurice_nycu('mauricewang1128@gmail.com','cwt_rename&fig_success','yeah~~~~~~')
 
 
