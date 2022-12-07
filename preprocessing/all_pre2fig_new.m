@@ -360,7 +360,7 @@ for i = 1:4
     ax = gca;
     ax.YDir = 'normal';
     ax.FontSize = font_size;
-    caxis([0 80]);
+    caxis([0 300]);
     save_name_ = ['Re' num2str(record_count) '_ECoG[' num2str(i) ']_' char(mouse_name(count)) ]
 
 
@@ -662,7 +662,7 @@ for i = 1:4
     ax = gca;
     ax.YDir = 'normal';
     ax.FontSize = font_size;
-    caxis([0 80]);
+    caxis([0 300]);
     save_name_ = ['Re' num2str(record_count) '_ECoG[' num2str(i) ']_' char(mouse_name(count)) ];
     saveas(savefig,fullfile(save_path,[char(mouse_name(count)) '/fig_file_no_muscle_substract_no_zscore'],save_name_),'fig');
    close all
