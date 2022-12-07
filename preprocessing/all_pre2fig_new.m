@@ -20,7 +20,7 @@ replace = true;
 total_mouse = 1
 mouse_name = {'CL-DBS_1'}
 %recording前一個資料夾
-savePath = '/Users/mauricewang/Desktop/CL-DBS_1_11.5' 
+savePath = '/Users/mauricewang/Desktop/recording_three' 
 
 
 %設定channel數
@@ -72,7 +72,7 @@ for Path = filePath
         Path = char(Path);
         data = EEG_tools_new.getRawData(Path, cell2mat(chosse_channel(k)), replace);
         data_raw = data;
-        data = EEG_tools_new.Preprocessing(data,data.Data,[0.5,30],[10 300],data.Header.sample_rate,1000); 
+%         data = EEG_tools_new.Preprocessing(data,data.Data,[0.5,30],[10 300],data.Header.sample_rate,1000); 
 
 
 
@@ -120,7 +120,7 @@ recording_count = i;
 
 gmail.send_mail_from_maurice_nycu ('mauricewang1128@gmail.com' ,'finish_pre_nozscore', 'yeah~~~~')
 
-
+% 
 
 %%%%%%畫正常的fig
     
@@ -152,6 +152,8 @@ record_count
     load(Path);
     
     temp = EEG.Data;
+    temp(:,1:1000) = 0;
+    temp(:,end-1000:end) = 0;
     time = length(temp(i,:)) * (1/1000);
     t=linspace(0,time,length(temp(1,:)));
     fre_resolution = 0.5; 
@@ -171,37 +173,7 @@ p_record_all{i} = zscore(p_record,0,'all')
 length_p_all{i} = length_p
 end
 
-for i = 5:6
-    record_count = 0;
-    p_record = []
-length_p = []
-length_p = [0,length_p]
-for Path = filePath
-    
-    record_count  = record_count+1   ;
-record_count
-    %% parameter
-    Path = char(Path);
-    load(Path);
-    
-    temp = EEG.Data;
-    time = length(temp(1,:)) * (1/1000);
-    t=linspace(0,time,length(temp(1,:)));
-    fre_resolution = 0.5; 
-    time_window = 1000;
-    overlap = 950;
-    Fs = 1000;%sample rate
 
-
-
-
-    [s,F,T,p]=spectrogram(temp(1,:),time_window,overlap,Fs/fre_resolution,Fs,'yaxis');
-    p_record = [p_record , p(1:603,:)];
-    length_p = [length_p,length_p(end)+length(p(1,:))];
-end
-p_record_all{i} = zscore(p_record,0,'all')
-length_p_all{i} = length_p
-end
 
 record_count = 0
 
@@ -253,7 +225,7 @@ for i = 1:4
     ax = gca;
     ax.YDir = 'normal';
     ax.FontSize = font_size;
-    caxis([-(10^(-100)) 10^(-100)]);
+    caxis([-(10^(-3)) 10^(-3)]);
     save_name_ = ['Re' num2str(record_count) '_ECoG[' num2str(i) ']_' char(mouse_name(count)) ];
     saveas(savefig,fullfile(save_path,[char(mouse_name(count)) '/fig_file_zscore'],save_name_),'fig');
     close all
@@ -271,11 +243,31 @@ end
 %
 %plot EMG
 for i = 1:2
-    savefig = figure;
+%     savefig = figure;
+%     subplot(2,1,1);
+%     plot(t,temp(i+4,:));
+%     title(char(title_EMG(i)));
+%     axis([0 900 -1000 1000]);
+%     ax =gca;
+%     ax.FontSize = font_size;
+%     xlabel('Time(s)','FontSize', font_size);
+%     ylabel('z-score','FontSize', font_size);
+%     
+%     subplot(2,1,2);
+%     [s,F,T,p]=spectrogram(temp(i+4,:),time_window,overlap,Fs/fre_resolution,Fs,'yaxis');
+%     a = imagesc(T, F(1:603), p_record_all{i+4}(1:603 , length_p_all{i+4}(record_count)+1:length_p_all{i+4}(record_count+1)));
+%     ylabel('Freqency(hz)','FontSize', font_size);
+%     ylim([10 300]);
+%     ax = gca;
+%     ax.YDir = 'normal';
+%     ax.FontSize = font_size;
+%     caxis([-(10^(-100)) 10^(-100)]);
+
+  savefig = figure;
     subplot(2,1,1);
     plot(t,temp(i+4,:));
     title(char(title_EMG(i)));
-    axis([0 900 -6 6]);
+    axis([0 900 -1000 1000]);
     ax =gca;
     ax.FontSize = font_size;
     xlabel('Time(s)','FontSize', font_size);
@@ -283,13 +275,13 @@ for i = 1:2
     
     subplot(2,1,2);
     [s,F,T,p]=spectrogram(temp(i+4,:),time_window,overlap,Fs/fre_resolution,Fs,'yaxis');
-    a = imagesc(T, F(1:603), p_record_all{i+4}(1:603 , length_p_all{i+4}(record_count)+1:length_p_all{i+4}(record_count+1)));
+    a = imagesc(T, F, p);
     ylabel('Freqency(hz)','FontSize', font_size);
     ylim([10 300]);
     ax = gca;
     ax.YDir = 'normal';
     ax.FontSize = font_size;
-    caxis([0 0.001]);
+    caxis([0 80]);
     save_name_ = ['Re' num2str(record_count) '_EMG[' num2str(i) ']_' char(mouse_name(count)) ];
     saveas(savefig,fullfile(save_path,[char(mouse_name(count)) '/fig_file_zscore'],save_name_),'fig');
 
@@ -368,7 +360,7 @@ for i = 1:4
     ax = gca;
     ax.YDir = 'normal';
     ax.FontSize = font_size;
-    caxis([0 50]);
+    caxis([0 80]);
     save_name_ = ['Re' num2str(record_count) '_ECoG[' num2str(i) ']_' char(mouse_name(count)) ]
 
 
@@ -400,14 +392,14 @@ for i = 1:2
     ylabel('z-score','FontSize', font_size);
     
     subplot(2,1,2);
-    [s,F,T,p]=spectrogram(temp(1+4,:),time_window,overlap,Fs/fre_resolution,Fs,'yaxis');
+    [s,F,T,p]=spectrogram(temp(i+4,:),time_window,overlap,Fs/fre_resolution,Fs,'yaxis');
     a = imagesc(T, F, p);
     ylabel('Freqency(hz)','FontSize', font_size);
     ylim([10 300]);
     ax = gca;
     ax.YDir = 'normal';
     ax.FontSize = font_size;
-    caxis([0 50]);
+    caxis([0 80]);
     save_name_ = ['Re' num2str(record_count) '_EMG[' num2str(i) ']_' char(mouse_name(count)) ];
     saveas(savefig,fullfile(save_path,[char(mouse_name(count)) '/fig_file_no_zscore'],save_name_),'fig');
     close all
@@ -464,6 +456,8 @@ record_count
     load(Path);
     
     temp = EEG.Data;
+     temp(:,1:1000) = 0;
+    temp(:,end-1000:end) = 0;
     time = length(temp(1,:)) * (1/1000);
     t=linspace(0,time,length(temp(1,:)));
     fre_resolution = 0.5; 
@@ -484,38 +478,6 @@ length_p_all{i} = length_p
 end
 
 
-for i = 5:8
-    record_count = 0;
-    p_record = []
-length_p = []
-length_p = [0,length_p]
-for Path = filePath
-    
-    record_count  = record_count+1   ;
-record_count
-    %% parameter
-    Path = char(Path);
-    load(Path);
-    
-    temp = EEG.Data;
-    time = length(temp(i,:)) * (1/1000);
-    t=linspace(0,time,length(temp(1,:)));
-    fre_resolution = 0.5; 
-    time_window = 1000;
-    overlap = 950;
-    Fs = 1000;%sample rate
-
-
-
-
-    [s,F,T,p]=spectrogram(temp(1,:),time_window,overlap,Fs/fre_resolution,Fs,'yaxis');
-    p_record = [p_record , p(1:603,:)];
-    length_p = [length_p,length_p(end)+length(p(1,:))];
-end
-p_record_all{i} = zscore(p_record,0,'all')
-
-length_p_all{i} = length_p
-end
 
 record_count = 0
 
@@ -547,7 +509,7 @@ for i = 1:4
     subplot(2,1,1);
     plot(t,temp(i,:));
     title(char(title_ECoG(i)));
-    axis([0 900 -6 6]);
+    axis([0 900 -1000 1000]);
     ax =gca;
     ax.FontSize = font_size;
     xlabel('Time(s)','FontSize', font_size);
@@ -562,7 +524,7 @@ for i = 1:4
     ax = gca;
     ax.YDir = 'normal';
     ax.FontSize = font_size;
-    caxis([0 0.001]);
+    caxis([-(10^(-3)) 10^(-3)]);
     save_name_ = ['Re' num2str(record_count) '_ECoG[' num2str(i) ']_' char(mouse_name(count)) ];
     saveas(savefig,fullfile(save_path,[char(mouse_name(count)) '/fig_file_no_muscle_substract_zscore'],save_name_),'fig');
     close all
@@ -579,11 +541,32 @@ end
 %
 %plot EMG
 for i = 1:4
-    savefig = figure;
+%     savefig = figure;
+%     subplot(2,1,1);
+%     plot(t,temp(i+4,:));
+%     title(char(title_EMG(i)));
+%     axis([0 900 -1000 1000]);
+%     ax =gca;
+%     ax.FontSize = font_size;
+%     xlabel('Time(s)','FontSize', font_size);
+%     ylabel('z-score','FontSize', font_size);
+%     
+%     subplot(2,1,2);
+%     [s,F,T,p]=spectrogram(temp(i+4,:),time_window,overlap,Fs/fre_resolution,Fs,'yaxis');
+%     a = imagesc(T, F(1:603), p_record_all{i+4}(1:603 , length_p_all{i+4}(record_count)+1:length_p_all{i+4}(record_count+1)));
+%     ylabel('Freqency(hz)','FontSize', font_size);
+%     ylim([10 300]);
+%     ax = gca;
+%     ax.YDir = 'normal';
+%     ax.FontSize = font_size;
+%     caxis([-(10^(-100)) 10^(-100)]);
+
+
+ savefig = figure;
     subplot(2,1,1);
     plot(t,temp(i+4,:));
     title(char(title_EMG(i)));
-    axis([0 900 -6 6]);
+    axis([0 900 -1000 1000])
     ax =gca;
     ax.FontSize = font_size;
     xlabel('Time(s)','FontSize', font_size);
@@ -591,13 +574,14 @@ for i = 1:4
     
     subplot(2,1,2);
     [s,F,T,p]=spectrogram(temp(i+4,:),time_window,overlap,Fs/fre_resolution,Fs,'yaxis');
-    a = imagesc(T, F(1:603), p_record_all{i+4}(1:603 , length_p_all{i+4}(record_count)+1:length_p_all{i+4}(record_count+1)));
+    a = imagesc(T, F, p);
     ylabel('Freqency(hz)','FontSize', font_size);
     ylim([10 300]);
     ax = gca;
     ax.YDir = 'normal';
     ax.FontSize = font_size;
-    caxis([0 0.001]);
+    caxis([0 80]);
+
     save_name_ = ['Re' num2str(record_count) '_EMG[' num2str(i) ']_' char(mouse_name(count)) ];
     saveas(savefig,fullfile(save_path,[char(mouse_name(count)) '/fig_file_no_muscle_substract_zscore'],save_name_),'fig');
 close all
@@ -678,7 +662,7 @@ for i = 1:4
     ax = gca;
     ax.YDir = 'normal';
     ax.FontSize = font_size;
-    caxis([0 50]);
+    caxis([0 80]);
     save_name_ = ['Re' num2str(record_count) '_ECoG[' num2str(i) ']_' char(mouse_name(count)) ];
     saveas(savefig,fullfile(save_path,[char(mouse_name(count)) '/fig_file_no_muscle_substract_no_zscore'],save_name_),'fig');
    close all
@@ -706,14 +690,14 @@ for i = 1:4
     ylabel('z-score','FontSize', font_size);
     
     subplot(2,1,2);
-    [s,F,T,p]=spectrogram(temp(1+4,:),time_window,overlap,Fs/fre_resolution,Fs,'yaxis');
+    [s,F,T,p]=spectrogram(temp(i+4,:),time_window,overlap,Fs/fre_resolution,Fs,'yaxis');
     a = imagesc(T, F, p);
     ylabel('Freqency(hz)','FontSize', font_size);
     ylim([10 300]);
     ax = gca;
     ax.YDir = 'normal';
     ax.FontSize = font_size;
-    caxis([0 50]);
+    caxis([0 80]);
     save_name_ = ['Re' num2str(record_count) '_EMG[' num2str(i) ']_' char(mouse_name(count)) ];
     saveas(savefig,fullfile(save_path,[char(mouse_name(count)) '/fig_file_no_muscle_substract_no_zscore'],save_name_),'fig');
     close all
